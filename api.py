@@ -1,16 +1,19 @@
 from fastapi import FastAPI
-from controller_user import ControllerUser
+from MVC.controllers import ControllerUser
 
-controller = ControllerUser('existing_users.json')
-api = FastAPI()
+controller = ControllerUser('./Utils/existing_users.json')
+api = FastAPI() # exc este archivo
+
+def main():
+    pass
 
 @api.get('/')
 def index():
     return ("Welcome!")
 
 @api.get('/users')
-def get_all_users():
-    return controller.print_all_users()
+def get_all():
+    return controller.print_all()
 
 @api.post('/user/')
 def post_add_user(name:str,username:str,email:str,password:str):
@@ -23,3 +26,6 @@ def delete_user(username:str):
 @api.get('/login/')
 def login(username:str,password:str):
     return controller.login(username,password)
+
+if __name__ == '__main__':
+    main()
