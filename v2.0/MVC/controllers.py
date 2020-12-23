@@ -1,11 +1,13 @@
 import json
-from MVC.   models import User, File
+from MVC.models import User, File
+from pydantic import BaseModel
 
 class ControllerFile:
     def __init__(self,path:str):
         self._path = path
         with File(self._path,'r') as _:
             self.content = _.read()
+            
     def read(self):
         with File(self._path,"r") as _:
             return _.read()
@@ -20,13 +22,13 @@ class ControllerFile:
 
 #######---------END----------####--------FILE---------###########
 
-class ControllerUser:
+class ControllerUser():
     def __init__(self,path:str,current_user:User=None):
         self._file = ControllerFile(path)
-        self._current_user = current_user # -> el current user tiene que ser de tipo User() , no es tener el print str del usuario es tener un obj usuario
+        self._current_user = current_user
         self._users = self.get_all()
 
-    def print_all(self):
+    def print_all(self) -> list:
         users = json.loads(self._file.read())
         if self._current_user != None: users.append(self._current_user)
         return (users)
@@ -57,17 +59,16 @@ class ControllerUser:
     def get_all(self) -> list:
         users = json.loads(self._file.read())
         if self._current_user != None: users.pop()
-        users = [User(user['name'],user['username'],user['email'],user['password']) for user in users]
+        users = [User(name=user['name'],username=user['username'],email=user['email'],password=user['password']) for user in users]
         return users
 
-    def add_user(self,name:str, username:str, email:str, password:str):
-        user = User(name,username,email,password)
+    def add_user(self,user:User):
         if user in self._users:
             return 'User already exists'
-        else:               # this method is to big
+        else:
             if self.is_valid_user(user):
                 self._users.append(user)
-                self._file.save(self.get_users_dict(self._users))
+                self.saveFile()
             else:
                 return "Username or Password does not meet requirements"
 
@@ -81,10 +82,15 @@ class ControllerUser:
     def delete_user(self,username:str):
         user = self.get_user_by_username(username,self._users)
         if user in self._users:
-            self._users.remove(user) # this method is to big
-            self._file.save(self.get_users_dict(self._users))
+            self._users.remove(user)
+            self.saveFile()
         else:
             return 'User does not exists'
+            
+    def saveFile(self, content:str=None):
+        if content == None:
+            content = self.get_users_dict(self._users)
+        self._file.save(content)
 
     def login(self,username:str,password:str):
         user = self.get_user_by_username(username,self._users)
