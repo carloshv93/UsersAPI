@@ -1,5 +1,5 @@
 import json
-from MVC.models import User, File
+from MVC.models import User, File,UserRequestUsername
 from pydantic import BaseModel
 
 class ControllerFile:
@@ -40,19 +40,19 @@ class ControllerUser():
 
     def is_valid_username(self,user:User) -> bool:
         flag = True
-        if " " in user._username:
+        if " " in user.username:
             flag = False
         return flag
 
     def is_valid_email(self,user:User) -> bool:
         flag = True
-        if user._email.find("@") == -1:
+        if user.email.find("@") == -1:
             flag = False
         return flag
 
     def is_valid_password(self,user:User) -> bool:
         flag = True
-        if not len(user._password)>=7:
+        if not len(user.password)>=7:
             flag = False
         return flag
 
@@ -75,12 +75,12 @@ class ControllerUser():
     def get_user_by_username(self,username:str,users:list) -> User:
         user = None
         for _user in users:
-            if _user._username == username:
+            if _user.username == username:
                 user = _user
         return user
 
-    def delete_user(self,username:str):
-        user = self.get_user_by_username(username,self._users)
+    def delete_user(self,username_request:UserRequestUsername):
+        user = self.get_user_by_username(username_request.username,self._users)
         if user in self._users:
             self._users.remove(user)
             self.saveFile()
@@ -106,7 +106,7 @@ class ControllerUser():
         
     def check_password(self,user:User,password:str) -> str:
         result = False
-        if user._password == password:
+        if user.password == password:
             result = True
         return result
         

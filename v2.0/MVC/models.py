@@ -17,10 +17,13 @@ class User(BaseModel):
     password:str
 
     def __repr__(self):
-        return {"name":self._name,"username":self._username,"email":self._email,"password":self._password}
+        return {"name":self.name,"username":self.username,"email":self.email,"password":self.password}
 
     def update(self,user):
-        self._name = user.name
-        self._username = user.username
-        self._email = user.email
-        self._password = user.password
+        self.name = user.name
+        self.username = user.username
+        self.email = user.email
+        self.password = user.password
+
+class UserRequestUsername(BaseModel):
+    username:str
