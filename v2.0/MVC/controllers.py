@@ -1,5 +1,5 @@
 import json
-from MVC.models import User, File,UserRequestDelete
+from MVC.models import User, File, UserRequestDelete, UserRequestLogin
 from pydantic import BaseModel
 
 class ControllerFile:
@@ -92,10 +92,10 @@ class ControllerUser():
             content = self.get_users_dict(self._users)
         self._file.save(content)
 
-    def login(self,username:str,password:str):
-        user = self.get_user_by_username(username,self._users)
+    def login(self,credentials:UserRequestLogin):
+        user = self.get_user_by_username(credentials.username,self._users)
         if user in self._users:
-            if (self.check_password(user,password)):
+            if (self.check_password(user,credentials.password)):
                self._current_user = user
                result = "login sucess"
             else:

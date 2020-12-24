@@ -27,3 +27,7 @@ class User(BaseModel):
 
 class UserRequestDelete(BaseModel):
     username:str
+
+class UserRequestLogin(BaseModel):
+    username:str
+    password:str
