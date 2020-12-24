@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from MVC.controllers import ControllerUser
-from MVC.models import User, UserRequestUsername
+from MVC.models import User, UserRequestDelete
 
 controller = ControllerUser('./Utils/existing_users.json')
 api = FastAPI() 
@@ -21,7 +21,7 @@ def post_add_user(user:User):
     return controller.add_user(user) 
 
 @api.delete('/user/')
-def delete_user(username_request:UserRequestUsername):
+def delete_user(username_request:UserRequestDelete):
     return controller.delete_user(username_request)
 
 @api.get('/login/')

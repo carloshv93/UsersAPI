@@ -25,5 +25,5 @@ class User(BaseModel):
         self.email = user.email
         self.password = user.password
 
-class UserRequestUsername(BaseModel):
+class UserRequestDelete(BaseModel):
     username:str

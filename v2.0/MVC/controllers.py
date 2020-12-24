@@ -1,5 +1,5 @@
 import json
-from MVC.models import User, File,UserRequestUsername
+from MVC.models import User, File,UserRequestDelete
 from pydantic import BaseModel
 
 class ControllerFile:
@@ -79,7 +79,7 @@ class ControllerUser():
                 user = _user
         return user
 
-    def delete_user(self,username_request:UserRequestUsername):
+    def delete_user(self,username_request:UserRequestDelete):
         user = self.get_user_by_username(username_request.username,self._users)
         if user in self._users:
             self._users.remove(user)
