@@ -1,16 +1,6 @@
 from pydantic import BaseModel
+from Utils.db import Base
 from sqlalchemy import Column, String, create_engine
-from sqlalchemy.orm import sessionmaker 
-from sqlalchemy.ext.declarative import declarative_base  
-
-
-if __name__ == '__main__':
-    engine = create_engine('mysql://root:O9oiopo9oiopo!@localhost:3306/tiims')
-    Base = declarative_base()
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(engine)
-    session = Session()
-
 
 class File:
     def __init__(self,path,method):
@@ -21,12 +11,22 @@ class File:
         
     def __exit__(self, type, value, traceback):
         self._file.close()
-class User(Base):
+
+class UserSchema(Base):
     __tablename__ = 'users'
     name = Column(String(20),nullable=False)
     username = Column(String(20), nullable=False, unique=True)
     email = Column(String(50),nullable=False, primary_key=True)
     password = Column(String(50),nullable=False)
+
+class User(BaseModel):
+    name: str
+    username: str
+    email: str
+    password: str
+
+    class Config:
+        orm_mode = True
 
     def __repr__(self):
         return {"name":self.name,"username":self.username,"email":self.email,"password":self.password}
