@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from Utils.db import Base
-from sqlalchemy import Column, String, create_engine
+from Utils.db_conn import Base
+from sqlalchemy import Column, String
 
 class File:
     def __init__(self,path,method):
@@ -24,9 +24,6 @@ class User(BaseModel):
     username: str
     email: str
     password: str
-
-    class Config:
-        orm_mode = True
 
     def __repr__(self):
         return {"name":self.name,"username":self.username,"email":self.email,"password":self.password}

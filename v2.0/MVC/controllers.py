@@ -1,41 +1,24 @@
 import json
-from MVC.models import User, File, UserRequestDelete, UserRequestLogin
 from pydantic import BaseModel
-
-class ControllerFile:
-    def __init__(self,path:str):
-        self._path = path
-        with File(self._path,'r') as _:
-            self.content = _.read()
-            
-    def read(self):
-        with File(self._path,"r") as _:
-            return _.read()
-
-    def save(self,data):
-        self.write(data)
-        with File(self._path,"w") as _: 
-            _.write(json.dumps(self._content)) 
-
-    def write(self,data):
-        self._content = data
-
-#######---------END----------####--------FILE---------###########
+from sqlalchemy.orm import Session
+from Utils.db_conn import SessionLocal
+from MVC.models import User, UserSchema , UserRequestDelete, UserRequestLogin
+from Utils.middleware_dabatase import MiddlewareDatabase
 
 class ControllerUser():
     def __init__(self,path:str,current_user:User=None):
-        self._file = ControllerFile(path)
         self._current_user = current_user
-        self._users = self.get_all()
+        self._users = self.get_all(SessionLocal())
 
-    def print_all(self) -> list:
-        users = json.loads(self._file.read())
+    def print_all(self,db: Session) -> list:
+        users = self.get_all(db)
         if self._current_user != None: users.append(self._current_user)
         return (users)
 
     def is_valid_user(self,user:User) -> bool:
         flag = True
-        if not self.is_valid_username(user) or not self.is_valid_password(user) or not self.is_valid_email(user): flag = False
+        if not self.is_valid_username(user) or not self.is_valid_password(user) or not self.is_valid_email(user):
+            flag = False
         return flag
 
     def is_valid_username(self,user:User) -> bool:
@@ -56,21 +39,28 @@ class ControllerUser():
             flag = False
         return flag
 
-    def get_all(self) -> list:
-        users = json.loads(self._file.read())
+    def get_all(self,db) -> list:
+        users = MiddlewareDatabase.get_all_users(db)
         if self._current_user != None: users.pop()
-        users = [User(name=user['name'],username=user['username'],email=user['email'],password=user['password']) for user in users]
         return users
 
-    def add_user(self,user:User):
-        if user in self._users:
-            return 'User already exists'
+    def add_user(self,db: Session, user:User):
+        if self.exist(user):
+            return 'Username already exists'
         else:
             if self.is_valid_user(user):
-                self._users.append(user)
-                self.saveFile()
+                return self.save_user(db,user)
             else:
                 return "Username or Password does not meet requirements"
+    
+    def exist(self,user:User):
+        True if self.get_user_by_username(user.username,self._users) != None else False
+            
+
+    def save_user(self,db: Session, user:User):
+        self._users.append(user)
+        MiddlewareDatabase.save_users(db,user)
+        return 'User added'
 
     def get_user_by_username(self,username:str,users:list) -> User:
         user = None
@@ -79,23 +69,17 @@ class ControllerUser():
                 user = _user
         return user
 
-    def delete_user(self,username_request:UserRequestDelete):
+    def delete_user(self,db:Session,username_request:UserRequestDelete):
         user = self.get_user_by_username(username_request.username,self._users)
         if user in self._users:
-            self._users.remove(user)
-            self.saveFile()
+            MiddlewareDatabase.delete_user(db,user)
         else:
             return 'User does not exists'
-            
-    def saveFile(self, content:str=None):
-        if content == None:
-            content = self.get_users_dict(self._users)
-        self._file.save(content)
 
-    def login(self,credentials:UserRequestLogin):
-        user = self.get_user_by_username(credentials.username,self._users)
+    def login(self,user_request:UserRequestLogin):
+        user = self.get_user_by_username(user_request.username,self._users)
         if user in self._users:
-            if (self.check_password(user,credentials.password)):
+            if (self.check_password(user,user_request.password)):
                self._current_user = user
                result = "login sucess"
             else:
